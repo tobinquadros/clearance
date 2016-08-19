@@ -1,0 +1,28 @@
+version: "2"
+
+services:
+
+  app:
+    build: .
+    image: tobinquadros/clearance:latest
+    environment:
+      POSTGRES_DB: clearance
+      POSTGRES_HOST: db
+      POSTGRES_PASSWORD: clearance
+      POSTGRES_USER: clearance
+    ports:
+      - 8080:8080
+    volumes:
+      - .:/go/src/github.com/tobinquadros/clearance
+    links:
+      - db:db
+      - cache:cache
+
+  db:
+    image: postgres:latest
+    environment:
+      POSTGRES_PASSWORD: clearance
+      POSTGRES_DB: clearance
+
+  cache:
+    image: redis:alpine
