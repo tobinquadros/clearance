@@ -23,6 +23,8 @@ services:
     environment:
       POSTGRES_PASSWORD: clearance
       POSTGRES_DB: clearance
+    volumes:
+      - ./data:/data
 
   cache:
     image: redis:alpine
