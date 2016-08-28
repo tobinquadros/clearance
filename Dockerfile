@@ -6,6 +6,6 @@ WORKDIR /go/src/github.com/tobinquadros/clearance
 
 RUN go install ./...
 
-EXPOSE 8080
+EXPOSE 8000
 
 ENTRYPOINT [ "/go/bin/clearance" ]
