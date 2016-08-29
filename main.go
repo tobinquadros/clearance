@@ -50,7 +50,6 @@ func version() {
 	fmt.Println("GoVersion:", goversion)
 }
 
-// creates a ServeMux and defines route handlers
 func createServeMux() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", indexHandler)
