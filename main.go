@@ -4,15 +4,59 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"time"
+
+	"github.com/kelseyhightower/envconfig"
 )
 
-func main() {
-	log.Println("I'm running!")
+var (
+	// use `-ldflags` during build to embed values for these variables
+	buildtime string
+	commit    string
+	goversion string
+)
 
-	http.HandleFunc("/", handleRequest)
-	http.ListenAndServe(":8080", nil)
+type Env struct {
+	Timeout          int    `envconfig:"TIMEOUT"`
+	WebServerPort    string `envconfig:"WEB_SERVER_PORT"`
+	PostgresDB       string
+	PostgresHost     string
+	PostgresPassword string
+	PostgresUser     string
 }
 
-func handleRequest(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Welcome to %s", r.URL.Path[1:])
+func main() {
+	var env Env
+	err := envconfig.Process("", &env)
+	if err != nil {
+		log.Fatal(err.Error())
+	}
+	log.Println(env.Timeout)
+	log.Println(env.WebServerPort)
+
+	server := &http.Server{
+		Addr:         fmt.Sprintf(":%s", env.WebServerPort),
+		Handler:      createServeMux(),
+		ReadTimeout:  time.Duration(env.Timeout) * time.Second,
+		WriteTimeout: time.Duration(env.Timeout) * time.Second,
+	}
+	log.Fatal(server.ListenAndServe())
+}
+
+// TODO: create flag to call this
+func version() {
+	fmt.Println("BuildTime:", buildtime)
+	fmt.Println("Commit:", commit)
+	fmt.Println("GoVersion:", goversion)
+}
+
+// creates a ServeMux and defines route handlers
+func createServeMux() http.Handler {
+	mux := http.NewServeMux()
+	mux.HandleFunc("/", indexHandler)
+	return mux
+}
+
+func indexHandler(w http.ResponseWriter, r *http.Request) {
+	fmt.Fprintf(w, "ok")
 }
