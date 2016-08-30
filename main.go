@@ -1,9 +1,11 @@
 package main
 
 import (
+	"flag"
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
@@ -14,7 +16,15 @@ var (
 	buildtime string
 	commit    string
 	goversion string
+
+	// CLI flags
+	versionFlag bool
 )
+
+func init() {
+	flag.BoolVar(&versionFlag, "version", false, "Print version information")
+	flag.BoolVar(&versionFlag, "v", false, "Print version information")
+}
 
 type Env struct {
 	Timeout          int    `envconfig:"TIMEOUT"`
@@ -26,14 +36,21 @@ type Env struct {
 }
 
 func main() {
+	// Handle flags passed in at process startup
+	flag.Parse()
+	if versionFlag == true {
+		version()
+		os.Exit(0)
+	}
+
+	// Ensure the environment meets the specification in Env
 	var env Env
 	err := envconfig.Process("", &env)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	log.Println(env.Timeout)
-	log.Println(env.WebServerPort)
 
+	// Start HTTP server with custom attributes
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%s", env.WebServerPort),
 		Handler:      createServeMux(),
@@ -41,13 +58,6 @@ func main() {
 		WriteTimeout: time.Duration(env.Timeout) * time.Second,
 	}
 	log.Fatal(server.ListenAndServe())
-}
-
-// TODO: create flag to call this
-func version() {
-	fmt.Println("BuildTime:", buildtime)
-	fmt.Println("Commit:", commit)
-	fmt.Println("GoVersion:", goversion)
 }
 
 func createServeMux() http.Handler {
