@@ -13,5 +13,6 @@ CREATE TABLE users (
 );
 
 INSERT INTO users (email, first_name, last_name, password, username) VALUES
-  ('user@example.com', 'first', 'last', crypt('12345', gen_salt('bf', 8)), 'username'),
-  ('tobin@example.com', 'Tobin', 'Quadros', crypt('test', gen_salt('bf', 8)), 'tobinq');
+  ('user@example.com', 'first', 'last', crypt('user-password', gen_salt('bf', 8)), 'username'),
+  ('spy@hacker.com', 'Ima', 'Spy', crypt('spy-password', gen_salt('bf', 8)), 'spy'),
+  ('tobin@example.com', 'Tobin', 'Quadros', crypt('tobinq-password', gen_salt('bf', 8)), 'tobinq');

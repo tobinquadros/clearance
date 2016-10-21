@@ -27,12 +27,12 @@ func init() {
 }
 
 type Env struct {
-	Timeout          int    `envconfig:"TIMEOUT"`
+	HTTPTimeout      int    `envconfig:"HTTP_TIMEOUT"`
 	WebServerPort    string `envconfig:"WEB_SERVER_PORT"`
-	PostgresDB       string
-	PostgresHost     string
-	PostgresPassword string
-	PostgresUser     string
+	PostgresDB       string `envconfig:"POSTGRES_DB"`
+	PostgresHost     string `envconfig:"POSTGRES_HOST"`
+	PostgresPassword string `envconfig:"POSTGRES_PASSWORD"`
+	PostgresUser     string `envconfig:"POSTGRES_USER"`
 }
 
 func main() {
@@ -54,8 +54,8 @@ func main() {
 	server := &http.Server{
 		Addr:         fmt.Sprintf(":%s", env.WebServerPort),
 		Handler:      createServeMux(),
-		ReadTimeout:  time.Duration(env.Timeout) * time.Second,
-		WriteTimeout: time.Duration(env.Timeout) * time.Second,
+		ReadTimeout:  time.Duration(env.HTTPTimeout) * time.Second,
+		WriteTimeout: time.Duration(env.HTTPTimeout) * time.Second,
 	}
 	log.Fatal(server.ListenAndServe())
 }
