@@ -4,13 +4,12 @@ services:
 
   app:
     build: .
-    image: tobinquadros/clearance:latest
     env_file:
       - .env
     ports:
       - 8000:8000
     volumes:
-      - .:/go/src/github.com/tobinquadros/clearance
+      - ./build/linux:/usr/local/bin/
     depends_on:
       - db
       - cache

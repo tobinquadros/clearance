@@ -21,39 +21,42 @@ LDFLAGS := -X 'main.buildtime=$(shell date -u +%s)-UTC' \
 POSTGRES_USER := clearance
 POSTGRES_NAME := $(POSTGRES_USER)
 
+.PHONY: compose
+compose: db app
+
+.PHONY: build
+build: $(PLATFORMS)
+
+.PHONY: $(PLATFORMS)
+$(PLATFORMS):
+	GOOS=$(os) GOARCH=$(arch) go build -ldflags "$(LDFLAGS)" -o build/$(os)/clearance
+
+.PHONY: app
+app: build
+	docker-compose restart app || docker-compose up -d app
+
 .PHONY: test
 test:
-	go test $$(go list ./... | grep -v vendor/)
-
-.PHONY: coverage
-coverage:
+	go test -cover $$(go list ./... | grep -v vendor/)
 
 .PHONY: benchmark
 benchmark:
 	go test -bench=. $$(go list ./... | grep -v vendor/ | grep -v cmd/)
 
-.PHONY: docker-image
-docker-image:
-	docker build -t $(NAMESPACE)/$(IMAGE_NAME):$(IMAGE_TAG) .
-
-.PHONY: docker-shell
-docker-shell:
-	docker-compose exec app ash
-
-.PHONY: docker-update
-docker-update:
-	docker-compose exec app go install -ldflags "$(LDFLAGS)" $(go list ./... | grep -v vendor/)
-	docker-compose restart app
-
-.PHONY: releases
-releases: $(PLATFORMS)
-
-.PHONY: $(PLATFORMS)
-$(PLATFORMS):
-	GOOS=$(os) GOARCH=$(arch) go build -ldflags "$(LDFLAGS)" -o releases/$(COMMIT)/$(os)/clearance
-
-.PHONY: seeds
-seeds:
+.PHONY: db
+db:
 	docker-compose up -d db
 	@sleep 5  # TODO: fix this race
 	docker-compose exec db psql -U $(POSTGRES_USER) -d $(POSTGRES_NAME) -f ./data/setup.sql
+
+.PHONY: db-shell
+db-shell:
+	docker-compose up -d db
+	@sleep 5  # TODO: fix this race
+	docker-compose exec db psql -U $(POSTGRES_USER)
+
+.PHONY: clean
+clean:
+	docker-compose down --volumes --rmi local
+	rm -rf ./build/
+

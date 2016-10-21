@@ -1,11 +1,11 @@
-FROM golang:alpine
+FROM alpine:latest
 MAINTAINER Tobin Quadros
 
-ADD . /go/src/github.com/tobinquadros/clearance
-WORKDIR /go/src/github.com/tobinquadros/clearance
+COPY ./build/linux/clearance /usr/local/bin/
+WORKDIR /usr/local/bin
 
-RUN go install $(go list ./... | grep -v vendor/)
+RUN apk add --no-cache ca-certificates
 
 EXPOSE 8000
 
-ENTRYPOINT [ "/go/bin/clearance" ]
+ENTRYPOINT [ "/usr/local/bin/clearance" ]
