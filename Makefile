@@ -33,7 +33,7 @@ $(PLATFORMS):
 
 .PHONY: app
 app: build
-	docker-compose restart app || docker-compose up -d app
+	docker-compose restart app 2&>/dev/null || docker-compose up -d app
 
 .PHONY: test
 test:
