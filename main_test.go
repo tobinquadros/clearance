@@ -41,7 +41,7 @@ func TestIndexHandler(t *testing.T) {
 	if writer.Code != 200 {
 		t.Errorf("Response code is %v", writer.Code)
 	}
-	if writer.Body.String() != "ok" {
+	if writer.Body.String() != "ok\n" {
 		t.Errorf("expected: ok, got: %v", writer.Body.String())
 	}
 }

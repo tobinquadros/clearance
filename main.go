@@ -67,5 +67,5 @@ func createServeMux() http.Handler {
 }
 
 func indexHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "ok")
+	fmt.Fprintf(w, "ok\n")
 }
