@@ -2,8 +2,6 @@ NAMESPACE := tobinquadros
 IMAGE_NAME := clearance
 IMAGE_TAG ?= latest
 
-PACKAGES := $(shell find ./* -type d | grep -v vendor/)
-INSTALL_PREFIX ?= $(GOPATH)/bin/
 COMMIT := $(shell git describe --always --dirty)
 GOVERSION := $(shell go version)  # TODO: Set this in docker binary
 
