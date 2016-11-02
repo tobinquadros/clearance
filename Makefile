@@ -19,6 +19,14 @@ LDFLAGS := -X 'main.buildtime=$(shell date -u +%s)-UTC' \
 POSTGRES_USER := clearance
 POSTGRES_NAME := $(POSTGRES_USER)
 
+.PHONY: test
+test:
+	go test -cover $$(go list ./... | grep -v vendor/)
+
+.PHONY: benchmark
+benchmark:
+	go test -bench=. $$(go list ./... | grep -v vendor/ | grep -v cmd/)
+
 .PHONY: compose
 compose: db app
 
@@ -32,14 +40,6 @@ $(PLATFORMS):
 .PHONY: app
 app: build
 	docker-compose restart app 2&>/dev/null || docker-compose up -d app
-
-.PHONY: test
-test:
-	go test -cover $$(go list ./... | grep -v vendor/)
-
-.PHONY: benchmark
-benchmark:
-	go test -bench=. $$(go list ./... | grep -v vendor/ | grep -v cmd/)
 
 .PHONY: db
 db:

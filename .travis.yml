@@ -1,0 +1,9 @@
+language: go
+
+go:
+    - master
+
+install: true
+
+script:
+  - make test
