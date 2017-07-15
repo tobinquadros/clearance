@@ -55,6 +55,7 @@ db-shell:
 
 .PHONY: clean
 clean:
-	docker-compose down --volumes --rmi local
-	rm -rf ./build/
+	-@docker-compose down --remove-orphans --volumes
+	-@docker container prune --force
+	-@docker image prune --force
 
