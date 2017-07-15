@@ -19,6 +19,11 @@ LDFLAGS := -X 'main.buildtime=$(shell date -u +%s)-UTC' \
 POSTGRES_USER := clearance
 POSTGRES_NAME := $(POSTGRES_USER)
 
+.PHONY: deps
+deps:
+	@go get -u github.com/golang/dep/cmd/dep
+	@dep ensure -update
+
 .PHONY: test
 test:
 	go test -cover $$(go list ./... | grep -v vendor/)

@@ -25,8 +25,9 @@ func fail(t *testing.T, actual string, expected string) {
 			actual = "(empty)"
 		}
 		_, file, line, _ := runtime.Caller(1)
-		t.Errorf("\n%s:%d\nExpected: %s\nActual:   %s\n",
-			file, line, expected, actual)
+		base := path.Base(file)
+		t.Errorf("Expectation should have failed but passed (see %s: line %d). \nExpected: %s\nActual:   %s\n",
+			base, line, expected, actual)
 	}
 }
 func format(message string) string {
