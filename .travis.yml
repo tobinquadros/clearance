@@ -6,4 +6,4 @@ go:
 install: true
 
 script:
-  - make test
+  - make tests
