@@ -7,7 +7,7 @@ services:
     env_file:
       - .env
     ports:
-      - 8000:8000
+      - "${HTTP_PORT}:${HTTP_PORT}"
     volumes:
       - ./build/linux:/usr/local/bin/
     depends_on:
