@@ -1,66 +1,75 @@
-NAMESPACE := tobinquadros
-IMAGE_NAME := clearance
-IMAGE_TAG ?= latest
+include .env
 
-COMMIT := $(shell git describe --always --dirty)
-GOVERSION := $(shell go version)  # TODO: Set this in docker binary
+# Used to name the final docker image artifact
+FULL_IMAGE_NAME := $(DOCKER_ORGANIZATION)/$(DOCKER_IMAGE_NAME)
 
-# Support Linux & OSX builds
-PLATFORMS := linux/amd64 darwin/amd64
-temp = $(subst /, ,$@)
-os = $(word 1, $(temp))
-arch = $(word 2, $(temp))
+# Allows reusing the docker-compose network with vanilla `docker run`
+MAKEFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
+CURRENT_DIR := $(notdir $(patsubst %/,%,$(dir $(MAKEFILE_PATH))))
+DOCKER_COMPOSE_NETWORK := "$(shell echo $(CURRENT_DIR) | tr A-Z a-z | tr -d - | tr -d _)_default"
 
-# Unitialized vars must be declared in the codebase for each importpath.key set
-LDFLAGS := -X 'main.buildtime=$(shell date -u +%s)-UTC' \
-	-X 'main.commit=$(COMMIT)' \
-	-X 'main.goversion=$(GOVERSION)'
+.PHONY: local-dev
+local-dev:
+	@docker-compose up
 
-POSTGRES_USER := clearance
-POSTGRES_NAME := $(POSTGRES_USER)
-
-.PHONY: deps
-deps:
-	@go get -u github.com/golang/dep/cmd/dep
-	@dep ensure -update
-
-.PHONY: test
-test:
-	go test -cover $$(go list ./... | grep -v vendor/)
-
-.PHONY: benchmark
-benchmark:
-	go test -bench=. $$(go list ./... | grep -v vendor/ | grep -v cmd/)
-
-.PHONY: compose
-compose: db app
-
-.PHONY: build
-build: $(PLATFORMS)
-
-.PHONY: $(PLATFORMS)
-$(PLATFORMS):
-	GOOS=$(os) GOARCH=$(arch) go build -ldflags "$(LDFLAGS)" -o build/$(os)/clearance
+.PHONY: tests
+tests:
+	@docker-compose run --rm -e ENV=test app bin/run_tests
 
 .PHONY: app
-app: build
-	docker-compose restart app 2&>/dev/null || docker-compose up -d app
+app:
+	@docker-compose up --build app
 
 .PHONY: db
 db:
-	docker-compose up -d db
-	@sleep 5  # TODO: fix this race
-	docker-compose exec db psql -U $(POSTGRES_USER) -d $(POSTGRES_NAME) -f ./data/setup.sql
+	@docker-compose up -d db
+
+.PHONY: build
+build:
+	@docker image build -t $(FULL_IMAGE_NAME) .
+
+.PHONY: mock
+mock: db build
+	@docker run $(MOCK_DOCKER_ARGS) \
+		--env-file ".env" \
+		--network $(DOCKER_COMPOSE_NETWORK) \
+		-p $(HTTP_PORT):$(HTTP_PORT) \
+		--name "mock_$(DOCKER_IMAGE_NAME)" \
+		$(FULL_IMAGE_NAME)
+
+.PHONY: check
+check: clean
+	@$(MAKE) mock MOCK_DOCKER_ARGS='-d'
+	@bin/check $(HTTP_PORT)
+	@$(MAKE) clean
+
+# ============================================================================= 
+# Helpers
+# ==============================================================================
+
+.PHONY: app-shell
+app-shell:
+	@docker-compose run --rm app bash
+
+.PHONY: db-setup
+db-setup: db
+	docker-compose exec db psql -U $(POSTGRES_USER) -d $(POSTGRES_DATABASE) -f ./data/setup.sql
 
 .PHONY: db-shell
-db-shell:
-	docker-compose up -d db
-	@sleep 5  # TODO: fix this race
-	docker-compose exec db psql -U $(POSTGRES_USER)
+db-shell: db
+	@sleep 1  # allow db container to initialize
+	@docker-compose exec db psql -U $(POSTGRES_USER)
 
 .PHONY: clean
-clean:
+clean: rm-containers rm-images
 	-@docker-compose down --remove-orphans --volumes
+
+.PHONY: rm-containers
+rm-containers:
+	-@ docker container ls -aq -f "status=running" | xargs -I {} docker container kill {}
 	-@docker container prune --force
+
+.PHONY: rm-images
+rm-images:
 	-@docker image prune --force
 

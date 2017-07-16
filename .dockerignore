@@ -1,0 +1,5 @@
+.env
+.gitignore
+.travis.yml
+data/
+vendor/
