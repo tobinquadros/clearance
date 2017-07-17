@@ -1,9 +1,10 @@
-language: go
+sudo: required
 
-go:
-    - master
-
-install: true
+services:
+  - docker
 
 script:
-  - make tests
+  - docker-compose run --rm -e ENV=test app bin/run_tests
+
+notifications:
+  email: false
