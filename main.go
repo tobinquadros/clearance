@@ -1,12 +1,14 @@
 package main
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net/http"
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
+	_ "github.com/lib/pq"
 )
 
 var (
@@ -35,6 +37,18 @@ func main() {
 	err := envconfig.Process("", &env)
 	if err != nil {
 		log.Fatal(err.Error())
+	}
+
+	// Create db
+	db, err := sql.Open("postgres", fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", env.PostgresUser, env.PostgresPassword, env.PostgresHost, env.PostgresDB))
+	if err != nil {
+		log.Println(err)
+	}
+	db.Ping()
+	if err != nil {
+		log.Println(err)
+	} else {
+		log.Println("database connection successful")
 	}
 
 	// Start HTTP server with custom attributes
