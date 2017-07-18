@@ -1,29 +1,23 @@
 package main
 
 import (
-	"flag"
 	"fmt"
 	"log"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/kelseyhightower/envconfig"
 )
 
 var (
-	// use `-ldflags` during build to embed values for these variables
-	buildtime string
-	commit    string
-	goversion string
-
-	// CLI flags
-	versionFlag bool
+	// The Dockerfile uses `-ldflags` during image build to embed these variables
+	// as version metadata for the /health-check endpoint.
+	buildTime string
+	gitCommit string
+	goVersion string
 )
 
 func init() {
-	flag.BoolVar(&versionFlag, "version", false, "Print version information")
-	flag.BoolVar(&versionFlag, "v", false, "Print version information")
 }
 
 type Env struct {
@@ -36,13 +30,6 @@ type Env struct {
 }
 
 func main() {
-	// Handle flags passed in at process startup
-	flag.Parse()
-	if versionFlag == true {
-		version()
-		os.Exit(0)
-	}
-
 	// Ensure the environment meets the specification in Env
 	var env Env
 	err := envconfig.Process("", &env)
@@ -63,6 +50,7 @@ func main() {
 func createServeMux() http.Handler {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", indexHandler)
+	mux.HandleFunc("/health-check", healthCheckHandler)
 	return mux
 }
 

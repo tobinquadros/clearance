@@ -7,7 +7,7 @@ WORKDIR /go/src/github.com/tobinquadros/clearance
 
 RUN go get -u github.com/golang/dep/cmd/dep && dep ensure -v
 RUN go install \
-  -ldflags "-X 'main.buildtime=$(date -u +%s)-UTC' -X 'main.commit=$(git describe --always --dirty)' -X 'main.goversion=$(go version)'" \
+  -ldflags "-X 'main.buildTime=$(date -u +%s)-UTC' -X 'main.gitCommit=$(git describe --always --dirty)' -X 'main.goVersion=$(go version)'" \
   $(go list ./... | grep -v vendor/)
 
 EXPOSE 8000
