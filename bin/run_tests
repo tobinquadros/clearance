@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 
 echo "executing tests..."
-go test -cover "$(go list ./... | grep -v vendor/)"
-go test -bench=. "$(go list ./... | grep -v vendor/ | grep -v cmd/)"
+go test -v -cover -bench=. "$(go list ./... | grep -v vendor/)"

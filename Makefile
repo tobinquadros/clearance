@@ -16,9 +16,9 @@ local-dev:
 tests:
 	@docker-compose run --rm -e ENV=test app bin/run_tests
 
-.PHONY: app
-app:
-	@docker-compose up --build app
+.PHONY: restart
+restart:
+	@docker-compose restart app
 
 .PHONY: db
 db:
@@ -49,11 +49,11 @@ check: clean
 
 .PHONY: app-shell
 app-shell:
-	@docker-compose run --rm app bash
+	@docker-compose exec app bash
 
 .PHONY: db-setup
 db-setup: db
-	docker-compose exec db psql -U $(POSTGRES_USER) -d $(POSTGRES_DATABASE) -f ./data/setup.sql
+	@docker-compose exec db psql -U $(POSTGRES_USER) -d $(POSTGRES_DATABASE) -f ./data/setup.sql
 
 .PHONY: db-shell
 db-shell: db

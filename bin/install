@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -e
+
+echo "executing go install..."
+
+go install -a \
+  -ldflags "-X 'main.buildTime=$(date -u +%s)-UTC' -X 'main.gitCommit=$(git describe --always --dirty)' -X 'main.goVersion=$(go version)'" \
+  "$(go list ./... | grep -v vendor/)"
+
