@@ -53,10 +53,13 @@ app-shell:
 
 .PHONY: db-setup
 db-setup: db
-	@docker-compose exec db psql -U $(POSTGRES_USER) -d $(POSTGRES_DATABASE) -f ./data/setup.sql
+	@sleep 5  # allow db container to initialize
+	@docker-compose exec db psql -U $(POSTGRES_USER) -d $(POSTGRES_DATABASE) \
+		-f ./data/setup.sql \
+		-f ./data/insert_seeds.sql
 
-.PHONY: db-shell
-db-shell: db
+.PHONY: psql
+psql: db
 	@sleep 1  # allow db container to initialize
 	@docker-compose exec db psql -U $(POSTGRES_USER)
 
